@@ -1,6 +1,7 @@
 import picamera
 from time import sleep
 import keyboard
+import subprocess
 
 zoom_factor = 1
 
@@ -10,6 +11,15 @@ def zoom(amount):
 	if(zoom_factor < 1.0):
 		zoom_factor = 1.0
 	camera.zoom = (0.5 - 1/zoom_factor/2, 0.5 - 1/zoom_factor/2, 1.0/zoom_factor, 1.0/zoom_factor)
+
+def get_best_resolution():
+	tvservice_status = subprocess.check_output(['tvservice', '-s'])
+	resolution = tvservice_status.split()[8]
+	width, height = resolution.split(b'x')
+	aspect_height_16 = int(height) / (int(width) / 16)
+	height_for_1280 = 80 * int(aspect_height_16)
+	return (1280, height_for_1280)
+
 
 def contrast_mode(mode):
 	if(mode == 0):
@@ -120,10 +130,10 @@ def contrast_mode(mode):
 		camera.video_stabilization = True
 		camera.drc_strength = 'off'
 		camera.color_effects = None
-		
+
 
 camera = picamera.PiCamera()
-camera.resolution = (1280, 720)
+camera.resolution = get_best_resolution()
 camera.framerate = 60
 camera.brightness = 65
 camera.contrast = 50
@@ -150,4 +160,4 @@ keyboard.add_hotkey('8', contrast_mode, args=[7])
 keyboard.add_hotkey('9', contrast_mode, args=[8])
 
 while True:
-    sleep(1)
+		sleep(1)
